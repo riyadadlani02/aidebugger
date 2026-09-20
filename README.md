@@ -53,6 +53,42 @@ aidebugger traps **capture and continue**. Built on `sys.monitoring` (PEP 669), 
 
 Need to actually step? Use mcp-debugger. This does the thing it can't.
 
+## Upload, debug, and run your own code
+
+The [debugging workspace](https://riyadadlani02.github.io/aidebugger/debug/) accepts a real `.py`
+upload or pasted Python source. It runs the original script, captures errors and aidebugger
+events, requests a model-generated repair, and reruns that repair in a fresh runtime.
+It makes at most three repair attempts and never labels a failed run as fixed. User-supplied
+checks remain unchanged across attempts. A successful run means execution completed;
+without checks it does not establish that the program is semantically correct.
+
+Run the workspace and API from this checkout with Python 3.12+:
+
+```bash
+export AIDEBUGGER_AI_API_KEY='your-provider-key'
+python -m aidebugger.web
+# open http://127.0.0.1:8787/debug/
+```
+
+Without a key, uploads and **Run code** still work, and the UI reports that AI repairs are
+not connected. No fallback fixes or simulated model responses are used in the application.
+See [web deployment instructions](docs/WEB_DEPLOYMENT.md) to connect the GitHub Pages
+frontend to a hosted API or use a local OpenAI-compatible model.
+
+Scope: one UTF-8 Python file up to 40 KB, the standard library, optional stdin and checks.
+Each execution gets a new Pyodide 0.28.3 worker in an opaque-origin sandboxed iframe.
+It has no access to the parent page's storage, model key, or filesystem. A 5-second
+execution deadline and Stop button dispose of the runtime; initial runtime loading has
+a separate 90-second deadline. Network requests are restricted by the sandbox CSP to
+the pinned Pyodide CDN path. This is a browser execution environment, not a hostile-code
+multi-tenant server sandbox; resource-heavy code can still strain the visitor's browser.
+Extra packages, project archives, network services, and persistent servers are not supported.
+
+Only **Debug & run** sends source, stdin, checks, goals, and bounded runtime evidence to
+the configured model through the API. Keys remain server-side. Uploaded code is never
+executed by the API. Trace locals use aidebugger's key-based redaction; source and printed
+output are sent as entered, so do not include secrets in code submitted for AI repair.
+
 ## Live console
 
 [Try it without installing anything](https://riyadadlani02.github.io/aidebugger/live/) — the real

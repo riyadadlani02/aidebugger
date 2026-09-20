@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Debug your Python code · aidebugger</title>
+  <meta name="description" content="Upload Python code, capture the error, repair it with AI, and run the result.">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../">aidebugger <span>/ workspace</span></a>
+    <a href="../live/">Explore runtime traps</a>
+    <a href="https://github.com/riyadadlani02/aidebugger">GitHub</a>
+  </header>
+  <main>
+    <div class="intro">
+      <div><h1>Bring the bug.<br>Run the repair.</h1>
+        <p>Upload a Python file. Capture what went wrong, let AI propose a fix, and see the code run again.</p></div>
+      <div class="connection"><span class="indicator" id="connection-dot"></span><span id="connection">Checking AI connection…</span><button class="text-button" id="reconnect">Retry</button></div>
+    </div>
+    <div class="workspace">
+      <section class="source-panel" aria-label="Your code">
+        <div class="panel-heading"><h2>Your code</h2><span id="filename">untitled.py</span></div>
+        <div class="upload" id="dropzone">
+          <div class="upload-icon" aria-hidden="true">↥</div>
+          <div><strong>Drop your Python file here</strong><p>One .py file, up to 40 KB. Or paste code below.</p></div>
+          <label class="button secondary" for="file">Choose file</label>
+          <input type="file" id="file" accept=".py,text/x-python" class="file-input">
+        </div>
+        <label class="sr-only" for="source">Python source code</label>
+        <textarea id="source" class="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="# Paste your Python code here…"></textarea>
+        <div class="editor-footer"><span>Python 3.13 · Standard library</span><button id="example" class="text-button">Load a buggy example</button></div>
+        <label class="field-label" for="goal">What should this code do? <span>Optional</span></label>
+        <textarea id="goal" class="small-input" maxlength="2000" placeholder="For example: calculate the average, including when the list is empty."></textarea>
+        <details class="inputs"><summary>Input and checks</summary>
+          <label class="field-label" for="stdin">Standard input <span>One input() answer per line</span></label>
+          <textarea id="stdin" class="small-input mono" maxlength="4000" spellcheck="false" placeholder="Answers your program reads from input()"></textarea>
+          <label class="field-label" for="checks">Checks to run after the script <span>AI cannot edit these</span></label>
+          <textarea id="checks" class="small-input mono" maxlength="8000" spellcheck="false" placeholder="assert average([2, 4]) == 3&#10;assert average([]) == 0"></textarea>
+        </details>
+        <div class="actions"><button id="debug" class="primary" disabled>Debug &amp; run</button><button id="run" class="secondary" disabled>Run code</button><button id="stop" class="danger" hidden>Stop</button></div>
+        <p class="privacy" id="privacy">Run code stays in your browser. Debug &amp; run sends your code, input, checks and captured output to the connected AI provider.</p>
+      </section>
+      <section class="results-panel" aria-label="Debugging results">
+        <div class="panel-heading"><h2>Results</h2><span class="status" id="status">Ready for your code</span></div>
+        <div id="message" role="status" aria-live="polite">Upload a file or load the example to begin.</div>
+        <ol id="progress" class="progress" aria-label="Debugging progress"><li>Run original</li><li>Repair with AI</li><li>Run repaired code</li></ol>
+        <div class="empty" id="empty"><div class="terminal-mark" aria-hidden="true">&gt;_</div><h3>The error is the starting point.</h3><p>Your original output, the proposed repair, and the next run will appear here.</p></div>
+        <div id="results" hidden>
+          <div id="runs"></div>
+          <section class="repair" id="repair" hidden>
+            <div class="result-heading"><h3>Proposed repair</h3><button id="download" class="text-button">Download .py</button></div>
+            <p id="explanation"></p>
+            <pre id="fixed-code" tabindex="0"></pre>
+            <button id="use-fix" class="secondary">Use in editor</button>
+          </section>
+        </div>
+      </section>
+    </div>
+    <footer>Single-file Python scripts with the standard library. Network calls, extra packages, servers and whole projects need a separate runtime. Each run has a 5-second execution limit.</footer>
+  </main>
+</body>
+</html>

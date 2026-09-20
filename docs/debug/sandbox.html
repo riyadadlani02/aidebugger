@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net/pyodide/v0.28.3/full/; worker-src blob:; connect-src https://cdn.jsdelivr.net/pyodide/v0.28.3/full/;">
+<title>Isolated Python runner</title>
+<script>
+let worker;
+addEventListener('message', ({source, data}) => {
+  if (source === parent && data?.type === 'stop') { worker?.terminate(); return; }
+  if (source !== parent || data?.type !== 'run' || worker) return;
+  const url = URL.createObjectURL(new Blob([data.worker], {type: 'text/javascript'}));
+  worker = new Worker(url);
+  URL.revokeObjectURL(url);
+  const send = message => parent.postMessage(message, '*');
+  worker.onmessage = ({data}) => send(data);
+  worker.onerror = () => send({type: 'error', message: 'Python could not start. Check your connection and try again.'});
+  worker.postMessage(data);
+});
+parent.postMessage({type: 'sandbox-ready'}, '*');
+</script>

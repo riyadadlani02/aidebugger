@@ -170,6 +170,11 @@ class Engine:
 
     def arm(self, symbol, events=("call", "return"), when=None, capture=None):
         code = code_of(resolve(symbol))
+        return self.arm_code(code, symbol, events, when, capture)
+
+    def arm_code(self, code, symbol=None, events=("call", "return"), when=None, capture=None):
+        """Arm compiled code before its first execution (including uploaded scripts)."""
+        symbol = symbol or code.co_qualname
         trap = Trap(next(self._ids), symbol, code, set(events), when, capture)
         self.traps[trap.id] = trap
         self._by_code.setdefault(code, []).append(trap)
