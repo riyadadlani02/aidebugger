@@ -1,7 +1,7 @@
 """A stand-in agent loop you can trap without any API keys.
 
     aidebugger run -- python examples/toy_agent.py
-    aidebugger trap examples.toy_agent.apply_discount
+    aidebugger trap toy_agent.apply_discount
     aidebugger poll 0
 
 It carries a deliberate bug: apply_discount is handed the post-discount subtotal, so a
