@@ -132,6 +132,21 @@ class APITests(unittest.TestCase):
         finally:
             other.shutdown(); other.server_close(); thread.join()
 
+    def test_api_only_mode_does_not_expose_static_files(self):
+        other = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(ROOT / "docs", api_only=True))
+        thread = threading.Thread(target=other.serve_forever, daemon=True)
+        thread.start()
+        try:
+            base = f"http://127.0.0.1:{other.server_port}"
+            self.assertFalse(json.load(urllib.request.urlopen(base + "/api/health"))["ready"])
+            for path in ("/", "/debug/config.js", "/WEB_DEPLOYMENT.md"):
+                for method in ("GET", "HEAD"):
+                    with self.assertRaises(urllib.error.HTTPError) as error:
+                        urllib.request.urlopen(urllib.request.Request(base + path, method=method), timeout=5)
+                    self.assertEqual(error.exception.code, 404)
+        finally:
+            other.shutdown(); other.server_close(); thread.join()
+
 
 class ProviderTests(unittest.TestCase):
     def test_actual_http_contract_and_invalid_model_output(self):

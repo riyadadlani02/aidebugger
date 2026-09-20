@@ -93,7 +93,7 @@ class Budget:
 
 
 def make_handler(directory, *, api_key="", base_url="https://api.openai.com/v1",
-                 model="gpt-4.1-mini", origins=(), daily_limit=100):
+                 model="gpt-4.1-mini", origins=(), daily_limit=100, api_only=False):
     budget = Budget(daily_limit)
 
     class Handler(SimpleHTTPRequestHandler):
@@ -143,9 +143,16 @@ def make_handler(directory, *, api_key="", base_url="https://api.openai.com/v1",
             path = urlsplit(self.path).path
             if path == "/api/health":
                 return self.send_json({"ready": bool(api_key), "model": model if api_key else None})
-            if path.startswith("/api/"):
+            if api_only or path.startswith("/api/"):
                 return self.send_json({"error": "Not found."}, 404)
             return super().do_GET()
+
+        def do_HEAD(self):
+            if api_only:
+                self.send_response(404)
+                self.end_headers()
+                return
+            return super().do_HEAD()
 
         def do_POST(self):
             if urlsplit(self.path).path != "/api/repair":
@@ -187,6 +194,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8787")))
+    parser.add_argument("--api-only", action="store_true", help="expose only the repair API, without static files")
     args = parser.parse_args()
     docs = Path(__file__).resolve().parent.parent / "docs"
     if not (docs / "debug" / "index.html").exists():
@@ -195,9 +203,9 @@ def main():
         base_url=os.getenv("AIDEBUGGER_AI_BASE_URL", "https://api.openai.com/v1"),
         model=os.getenv("AIDEBUGGER_AI_MODEL", "gpt-4.1-mini"),
         origins=tuple(filter(None, os.getenv("AIDEBUGGER_ALLOWED_ORIGINS", "").split(","))),
-        daily_limit=int(os.getenv("AIDEBUGGER_DAILY_REPAIRS", "100")))
+        daily_limit=int(os.getenv("AIDEBUGGER_DAILY_REPAIRS", "100")), api_only=args.api_only)
     server = ThreadingHTTPServer((args.host, args.port), handler)
-    print(f"AI Debugger workspace: http://{args.host}:{server.server_port}/debug/", flush=True)
+    print(f"AI Debugger {'API' if args.api_only else 'workspace'}: http://{args.host}:{server.server_port}/", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -1,8 +1,26 @@
 # Deploy the upload workspace
 
 GitHub Pages serves static files. The Python runtime runs in the visitor's browser;
-AI repairs also need the small `aidebugger.web` service. Do not put a provider key in
+the public site calls a cloud-hosted Claude repair service. Do not put a provider key in
 `docs/debug/config.js`, source control, a browser form, or a GitHub Pages asset.
+
+## Current public service
+
+The deployed API is at https://aidebugger-repair-api.quantumloopa-5190.chatgpt.site.
+The GitHub Pages frontend connects through `docs/debug/config.js`; visitors need no
+API key, local installation, or access to the owner's computer. The server keeps
+`ANTHROPIC_API_KEY` as a Sites secret and checks authentication and model availability.
+It prefers Claude Sonnet 5, with compatible fallback models when needed. The health
+endpoint returns the selected model. Uploaded code is executed only in the browser.
+
+The separate cloud API source checkout is `aidebugger-api`, hosted through Sites.
+Its D1 database stores usage counters only, with a shared default limit of 30 model
+requests per UTC day and three per minute. A debugging session can make up to three
+requests. Change `DAILY_REPAIRS` in the service's environment to adjust the daily ceiling.
+Code, input, and runtime output are not persisted by the repair service.
+
+The Python `aidebugger.web` server below remains available for local use or alternative
+container hosting. No laptop tunnel is used by the public website.
 
 ## Local use
 
@@ -38,7 +56,7 @@ python -m aidebugger.web
 4. Set `apiBase` in `docs/debug/config.js` to `https://YOUR-API-HOST/api/` and publish
    the updated `docs/` folder through the existing GitHub Pages deployment.
 5. Check `/api/health` returns `ready: true`, then upload your own small broken script
-   and run **Debug & run**. Verify the original fails, the repair runs, and the
+   and run **Debug & repair**. Verify the original fails, the repair runs, and the
    downloaded file matches the displayed code. Add assertions for expected behavior.
 
 The health endpoint reports configuration presence, not provider authentication.

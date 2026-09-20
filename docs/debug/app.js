@@ -1,9 +1,11 @@
 const $ = id => document.getElementById(id);
 const MAX_BYTES = 40000;
 // Resolve assets from this module so the workspace also works at the site root.
-const api = new URL(window.AIDEBUGGER_CONFIG?.apiBase || '../api/', import.meta.url);
+const localPage = ['localhost', '127.0.0.1'].includes(location.hostname);
+const api = new URL((!localPage && window.AIDEBUGGER_CONFIG?.apiBase) || '../api/', import.meta.url);
 if (!api.pathname.endsWith('/')) api.pathname += '/';
 let filename = 'untitled.py', busy = false, connected = false, fixedCode = '';
+let connectionIssue = 'The AI service is not connected yet.';
 let operation = null, cancelRun = null, assetsPromise;
 const example = `def average(numbers):
     return sum(numbers) / len(numbers)
@@ -23,6 +25,10 @@ function controls() {
   $('debug').disabled = busy || !hasCode || !connected;
   for (const id of ['file', 'source', 'goal', 'stdin', 'checks', 'example', 'use-fix', 'download']) $(id).disabled = busy;
   $('stop').hidden = !busy;
+  $('action-hint').textContent = busy ? 'Working on your code. You can stop at any time.'
+    : !hasCode ? 'Upload a Python file, paste code, or load the example to enable the buttons.'
+    : connected ? (window.AIDEBUGGER_CONFIG?.serviceNotice || 'Ready to debug and repair your code.')
+    : `${connectionIssue} You can still use Run code.`;
 }
 function resetResults() {
   $('runs').replaceChildren(); $('repair').hidden = true;
@@ -37,11 +43,13 @@ async function connection() {
   $('reconnect').disabled = true;
   try {
     const response = await fetch(new URL('health', api), {signal: AbortSignal.timeout(8000)});
-    const data = response.ok ? await response.json() : {};
-    connected = data.ready === true;
-    $('connection').textContent = connected ? 'AI connected · ' + data.model : 'AI repairs aren’t connected yet. Run code is available.';
+    const data = await response.json();
+    connected = response.ok && data.ready === true;
+    connectionIssue = data.error || 'AI repairs aren’t connected yet.';
+    $('connection').textContent = connected ? 'AI connected · ' + data.model : connectionIssue + ' Run code is available.';
   } catch {
     connected = false;
+    connectionIssue = 'The AI service could not be reached. Retry the connection.';
     $('connection').textContent = 'AI repairs aren’t connected yet. Run code is available.';
   }
   $('connection-dot').classList.toggle('connected', connected);
@@ -164,7 +172,7 @@ async function start(withAI) {
     signal.throwIfAborted();
     showRun(result, 'Original run');
     if (!withAI) {
-      message(result.ok ? (result.checksPassed ? 'Your script completed and your checks passed.' : 'Your script completed. Add checks to verify the output is correct.') : 'The original run failed. Read the error above or use Debug & run for an AI repair.', result.ok ? 'Run completed' : 'Error captured', result.ok ? 'ok' : 'error');
+      message(result.ok ? (result.checksPassed ? 'Your script completed and your checks passed.' : 'Your script completed. Add checks to verify the output is correct.') : 'The original run failed. Read the error above or use Debug & repair for an AI repair.', result.ok ? 'Run completed' : 'Error captured', result.ok ? 'ok' : 'error');
       return;
     }
     if (result.ok && (!snapshot.goal.trim() || result.checksPassed)) {
@@ -213,7 +221,7 @@ async function loadFile(file) {
     if (!content.trim()) { message('This file is empty. Choose a Python file with code.', 'Empty file', 'error'); return; }
     filename = file.name.slice(0, 120); $('filename').textContent = filename;
     $('source').value = content; $('goal').value = ''; $('checks').value = ''; $('stdin').value = '';
-    resetResults(); controls(); message(`${filename} is ready. Run it to capture the error${connected ? ', or choose Debug & run for an automatic repair' : ''}.`, 'File loaded');
+    resetResults(); controls(); message(`${filename} is ready. Run it to capture the error${connected ? ', or choose Debug & repair for an automatic repair' : ''}.`, 'File loaded');
   } catch { message('Could not read this file as UTF-8 Python text.', 'Invalid file', 'error'); }
 }
 $('file').addEventListener('change', event => { loadFile(event.target.files[0]); event.target.value = ''; });

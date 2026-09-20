@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 from http.server import ThreadingHTTPServer
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -25,6 +26,14 @@ def fixture_repair(body, **_):
 
 class Handler(make_handler(ROOT / "docs", api_key="test-only-fixture")):
     def do_GET(self):
+        if urlsplit(self.path).path == "/debug/config.js":
+            body = b"window.AIDEBUGGER_CONFIG = {apiBase: ''};"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if self.path == "/api/health":
             return self.send_json({"ready": state["ready"], "model": "test fixture"})
         if self.path == "/__test/state":

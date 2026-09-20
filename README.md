@@ -62,6 +62,10 @@ It makes at most three repair attempts and never labels a failed run as fixed. U
 checks remain unchanged across attempts. A successful run means execution completed;
 without checks it does not establish that the program is semantically correct.
 
+The public workspace connects to a cloud-hosted Claude service; visitors do not need
+an API key or a local model. The current model appears in the connection status. Keys
+stay on the server. Shared usage limits are described in the deployment instructions.
+
 Run the workspace and API from this checkout with Python 3.12+:
 
 ```bash
@@ -84,7 +88,7 @@ the pinned Pyodide CDN path. This is a browser execution environment, not a host
 multi-tenant server sandbox; resource-heavy code can still strain the visitor's browser.
 Extra packages, project archives, network services, and persistent servers are not supported.
 
-Only **Debug & run** sends source, stdin, checks, goals, and bounded runtime evidence to
+Only **Debug & repair** sends source, stdin, checks, goals, and bounded runtime evidence to
 the configured model through the API. Keys remain server-side. Uploaded code is never
 executed by the API. Trace locals use aidebugger's key-based redaction; source and printed
 output are sent as entered, so do not include secrets in code submitted for AI repair.

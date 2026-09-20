@@ -6,3 +6,6 @@ dist/
 node_modules/
 scripts/video/frames/
 package-lock.json
+.env
+.env.*
+!.env.example
