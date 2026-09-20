@@ -1,6 +1,7 @@
 const $ = id => document.getElementById(id);
 const MAX_BYTES = 40000;
-const api = new URL(window.AIDEBUGGER_CONFIG?.apiBase || '../api/', location.href);
+// Resolve assets from this module so the workspace also works at the site root.
+const api = new URL(window.AIDEBUGGER_CONFIG?.apiBase || '../api/', import.meta.url);
 if (!api.pathname.endsWith('/')) api.pathname += '/';
 let filename = 'untitled.py', busy = false, connected = false, fixedCode = '';
 let operation = null, cancelRun = null, assetsPromise;
@@ -49,7 +50,7 @@ async function connection() {
   controls();
 }
 async function textAsset(url) {
-  const response = await fetch(url);
+  const response = await fetch(new URL(url, import.meta.url));
   if (!response.ok) throw new Error('Could not load the Python runner. Reload the page and try again.');
   return response.text();
 }
@@ -104,7 +105,7 @@ async function runPython(source, snapshot, signal) {
     signal.addEventListener('abort', abort, {once: true});
     cancelRun = abort;
     timer = setTimeout(() => finish(new Error('Python took too long to load. Check your internet connection and try again.')), 90000);
-    frame.src = 'sandbox.html';
+    frame.src = new URL('sandbox.html', import.meta.url).href;
     document.body.append(frame);
   });
 }

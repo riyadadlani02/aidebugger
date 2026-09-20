@@ -13,7 +13,8 @@ export AIDEBUGGER_AI_API_KEY='your-provider-key'
 python -m aidebugger.web
 ```
 
-Open `http://127.0.0.1:8787/debug/`. The default provider is OpenAI, using
+Open `http://127.0.0.1:8787/`. The workspace is the homepage; `/debug/` also remains available.
+The default provider is OpenAI, using
 `gpt-4.1-mini`. Set `AIDEBUGGER_AI_MODEL` for a different JSON-capable model and
 `AIDEBUGGER_AI_BASE_URL` for a compatible `/v1` API. The service appends `/chat/completions`.
 
@@ -57,6 +58,7 @@ a separate localhost-only tool for live processes. `aidebugger.web` does not exe
 
 ```bash
 python scripts/build_live.py
+python scripts/build_workspace.py
 python tests/test_aidebugger.py
 python -m unittest discover -s tests -p 'test_web.py'
 node tests/test_workspace.cjs
@@ -65,3 +67,7 @@ node tests/test_workspace.cjs
 The browser test uses real Pyodide execution and a clearly marked fixture model response;
 it does not prove live model quality. It needs Chrome and the existing `scripts/video`
 Puppeteer dependency (`npm install --prefix scripts/video`).
+
+Edit `docs/debug/index.html` for workspace markup, then run `scripts/build_workspace.py`
+to update the generated homepage. Both pages use the same JavaScript, CSS, Python runner,
+and API settings. The product overview and demos are at `docs/about.html`.

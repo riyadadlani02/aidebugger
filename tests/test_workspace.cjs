@@ -40,7 +40,7 @@ async function setCode(page, code, checks = '') {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     await page.setViewport({width: 1440, height: 1100});
-    await page.goto(url);
+    await page.goto(new URL('../', url).href);
     await page.waitForFunction(() => document.querySelector('#connection').textContent.includes('aren’t connected'));
     await page.click('#example');
     assert(await page.$eval('#debug', el => el.disabled));

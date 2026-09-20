@@ -1,8 +1,8 @@
 # aidebugger
 
-**[Run it live in your browser →](https://riyadadlani02.github.io/aidebugger/live/)** ·
+**[Upload and debug your code →](https://riyadadlani02.github.io/aidebugger/)** ·
 **[Site →](https://riyadadlani02.github.io/aidebugger/)** ·
-**[Demo video →](https://riyadadlani02.github.io/aidebugger/#video)**
+**[Demo video →](https://riyadadlani02.github.io/aidebugger/about.html#video)**
 
 Non-stopping runtime traps for live AI agent processes — so an AI coding agent can read **real
 values** out of a running agent without freezing the agent it's debugging.
@@ -55,7 +55,7 @@ Need to actually step? Use mcp-debugger. This does the thing it can't.
 
 ## Upload, debug, and run your own code
 
-The [debugging workspace](https://riyadadlani02.github.io/aidebugger/debug/) accepts a real `.py`
+The [homepage debugging workspace](https://riyadadlani02.github.io/aidebugger/) accepts a real `.py`
 upload or pasted Python source. It runs the original script, captures errors and aidebugger
 events, requests a model-generated repair, and reruns that repair in a fresh runtime.
 It makes at most three repair attempts and never labels a failed run as fixed. User-supplied
